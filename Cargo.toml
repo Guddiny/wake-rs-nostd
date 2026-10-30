@@ -6,3 +6,7 @@ description = "no_std encoder/decoder for the Wake packet format"
 
 [dependencies]
 heapless = "0.9.3"
+defmt = { version = "1.0.1", optional = true }
+
+[features]
+defmt = ["dep:defmt"]

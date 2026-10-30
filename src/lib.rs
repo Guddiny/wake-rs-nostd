@@ -63,7 +63,7 @@ impl Display for WakeError {
 }
 
 /// Wake packet: address, command, and data
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Packet {
     /// Device address (optional) [0 - 127]
     pub address: Option<u8>,
@@ -97,6 +97,52 @@ impl core::fmt::Display for Packet {
             }
             None => writeln!(f, "DATA: none"),
         }
+    }
+}
+
+#[cfg(feature = "defmt")]
+impl defmt::Format for WakeError {
+    fn format(&self, f: defmt::Formatter) {
+        defmt::write!(f, "{}", defmt::Display2Format(self));
+    }
+}
+
+#[cfg(feature = "defmt")]
+impl defmt::Format for Packet {
+    /// Show the packet in a human readable format, e.g.
+    ///
+    /// ```text
+    /// {
+    ///   ADDR: 0x11
+    ///   CMD:  0x03
+    ///   DATA: 2 bytes
+    ///   00: 11 12
+    /// }
+    /// ```
+    fn format(&self, f: defmt::Formatter) {
+        /// Number of data bytes printed per row.
+        const BYTES_PER_ROW: usize = 16;
+
+        defmt::write!(f, "{{\n");
+        match self.address {
+            Some(a) => defmt::write!(f, "  ADDR: 0x{:02X}\n", a),
+            None => defmt::write!(f, "  ADDR: ----\n"),
+        }
+        defmt::write!(f, "  CMD:  0x{:02X}\n", self.command);
+        match &self.data {
+            Some(d) => {
+                defmt::write!(f, "  DATA: {} bytes\n", d.len());
+                for (row, chunk) in d.chunks(BYTES_PER_ROW).enumerate() {
+                    defmt::write!(f, "  {:02x}:", row * BYTES_PER_ROW);
+                    for byte in chunk {
+                        defmt::write!(f, " {:02x}", byte);
+                    }
+                    defmt::write!(f, "\n");
+                }
+            }
+            None => defmt::write!(f, "  DATA: none\n"),
+        }
+        defmt::write!(f, "}}")
     }
 }
 
