@@ -1,0 +1,8 @@
+[package]
+name = "wake"
+version = "0.1.0"
+edition = "2024"
+description = "no_std encoder/decoder for the Wake packet format"
+
+[dependencies]
+heapless = "0.9.3"
